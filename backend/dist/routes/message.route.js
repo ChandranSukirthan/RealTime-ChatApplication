@@ -1,5 +1,5 @@
 import express from "express";
-import { getUsersForSidebar, getConversationsForSidebar, getMessages, sendMessage, editMessage, deleteMessage, addContact, addSampleUser } from "../controllers/message.controller.js";
+import { getUsersForSidebar, getConversationsForSidebar, getMessages, sendMessage, editMessage, deleteMessage, addContact, searchContact, addSampleUser } from "../controllers/message.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import{ upload} from "../middleware/upload.middleware.js"
 
@@ -9,6 +9,7 @@ router.use(protectRoute)
 
 router.get("/users", getUsersForSidebar);
 router.get("/conversations", getConversationsForSidebar);
+router.post("/search-contact", searchContact);
 router.post("/add-contact", addContact);
 router.post("/sample-user", addSampleUser);
 router.get("/:id", getMessages);

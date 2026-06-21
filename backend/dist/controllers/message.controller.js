@@ -58,7 +58,7 @@ export async function getMessages(req, res) {
                 { senderId: userToChatId, receiverId: myId },
             ],
         })
-            .populate("replyTo", "text image video senderId isDeleted")
+            .populate("replyTo", "text image video audio document senderId isDeleted")
             .sort({ createdAt: 1 });
 
         res.status(200).json(messages);
@@ -76,6 +76,8 @@ export async function sendMessage(req, res) {
 
         let imageUrl;
         let videoUrl;
+        let audioUrl;
+        let documentUrl;
 
         if (req.file) {
             let url;
@@ -93,8 +95,12 @@ export async function sendMessage(req, res) {
                 const baseUrl = `${req.protocol}://${req.get("host")}`;
                 url = `${baseUrl}${localPath}`;
             }
-            if (req.file.mimetype.startsWith("video/")) videoUrl = url;
-            else imageUrl = url;
+            
+            const mime = req.file.mimetype;
+            if (mime.startsWith("image/")) imageUrl = url;
+            else if (mime.startsWith("video/")) videoUrl = url;
+            else if (mime.startsWith("audio/")) audioUrl = url;
+            else documentUrl = url;
         }
 
         const newMessage = new Message({
@@ -103,10 +109,12 @@ export async function sendMessage(req, res) {
             text,
             image: imageUrl,
             video: videoUrl,
+            audio: audioUrl,
+            document: documentUrl,
             replyTo: replyTo || null,
         });
         await newMessage.save();
-        await newMessage.populate("replyTo", "text image video senderId isDeleted");
+        await newMessage.populate("replyTo", "text image video audio document senderId isDeleted");
 
         const receiverSocketId = getReceiverSocketId(receiverId);
         if (receiverSocketId) {
@@ -126,10 +134,6 @@ export async function editMessage(req, res) {
         const { text } = req.body;
         const userId = req.user._id;
 
-        if (!text || !text.trim()) {
-            return res.status(400).json({ message: "Message text cannot be empty" });
-        }
-
         const message = await Message.findById(messageId);
         if (!message) {
             return res.status(404).json({ message: "Message not found" });
@@ -141,10 +145,15 @@ export async function editMessage(req, res) {
             return res.status(400).json({ message: "Cannot edit a deleted message" });
         }
 
-        message.text = text.trim();
+        const newText = text ? text.trim() : "";
+        if (!newText && !message.image && !message.video && !message.audio && !message.document) {
+            return res.status(400).json({ message: "Message text cannot be empty" });
+        }
+
+        message.text = newText;
         message.isEdited = true;
         await message.save();
-        await message.populate("replyTo", "text image video senderId isDeleted");
+        await message.populate("replyTo", "text image video audio document senderId isDeleted");
 
         // Emit to receiver
         const receiverSocketId = getReceiverSocketId(String(message.receiverId));
@@ -212,12 +221,17 @@ export async function addContact(req, res) {
         }
 
         const cleanPhone = emailOrPhone.replace(/[^\d+]/g, "");
+        const queryConditions = [
+            { email: emailOrPhone.toLowerCase() },
+            { phoneNumber: emailOrPhone }
+        ];
+        
+        if (cleanPhone && cleanPhone.length > 2) {
+            queryConditions.push({ phoneNumber: cleanPhone });
+        }
+
         const userToAdd = await User.findOne({
-            $or: [
-                { email: emailOrPhone.toLowerCase() },
-                { phoneNumber: emailOrPhone },
-                { phoneNumber: cleanPhone },
-            ],
+            $or: queryConditions,
         });
 
         if (!userToAdd) {
@@ -238,6 +252,46 @@ export async function addContact(req, res) {
         res.status(200).json(userToAdd);
     } catch (error) {
         console.error("Error in addContact:", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export async function searchContact(req, res) {
+    try {
+        const loggedInUserId = req.user._id;
+        const { phoneNumber } = req.body;
+
+        if (!phoneNumber) {
+            return res.status(400).json({ message: "Email or phone number is required" });
+        }
+
+        const cleanPhone = phoneNumber.replace(/[^\d+]/g, "");
+        const queryConditions = [
+            { email: phoneNumber.toLowerCase() },
+            { phoneNumber: phoneNumber }
+        ];
+        
+        if (cleanPhone && cleanPhone.length > 2) {
+            queryConditions.push({ phoneNumber: cleanPhone });
+        }
+
+        const userFound = await User.findOne({
+            $or: queryConditions,
+        }).select("-clerkId");
+
+        if (!userFound) {
+            return res.status(404).json({ message: "No user found with this email or phone number" });
+        }
+        if (userFound._id.toString() === loggedInUserId.toString()) {
+            return res.status(400).json({ message: "You cannot add yourself" });
+        }
+
+        const currentUser = await User.findById(loggedInUserId);
+        const isAlreadyContact = currentUser.contacts.includes(userFound._id);
+
+        res.status(200).json({ user: userFound, isAlreadyContact });
+    } catch (error) {
+        console.error("Error in searchContact:", error.message);
         res.status(500).json({ message: "Internal server error" });
     }
 }

@@ -49,6 +49,7 @@ function ChatSidebar() {
   const addContact = useChatStore((state) => state.addContact);
   const searchContact = useChatStore((state) => state.searchContact);
 
+  const selectedUser = useChatStore((state) => state.selectedUser);
   const onlineUsers = useAuthStore((state) => state.onlineUsers);
 
   const { isLargeScreen } = useSelectedConversation();
@@ -90,7 +91,7 @@ function ChatSidebar() {
       } else {
         const newUser = await addContact(searchResult.user.phoneNumber || searchResult.user.email);
         if (newUser) {
-          setActiveConversationId(newUser._id);
+          setActiveConversationId(newUser._id, newUser);
           setSidebarTab("chats");
           setSearchResult(null);
           setPhoneInput("");
@@ -106,11 +107,19 @@ function ChatSidebar() {
   const conversationUsers = conversations.map((user) => mapUserForList(user, onlineUsers));
   const allUsers = users.map((user) => mapUserForList(user, onlineUsers));
 
+  // If we have an active conversation, but it's not in the conversations list yet (e.g. no messages sent yet),
+  // add it to the top of the list so it shows up in the Chats tab.
+  const activeUser = selectedUser?._id === activeConversationId ? selectedUser : (users.find(u => u._id === activeConversationId) || conversations.find(u => u._id === activeConversationId));
+  let displayConversations = conversationUsers;
+  if (activeConversationId && activeUser && !conversations.some(c => c._id === activeConversationId)) {
+    displayConversations = [mapUserForList(activeUser, onlineUsers), ...displayConversations];
+  }
+
   const filteredConversations = normalizedSearchQuery
-    ? conversationUsers.filter((conversation) =>
+    ? displayConversations.filter((conversation) =>
         conversation.peer.name.toLowerCase().includes(normalizedSearchQuery),
       )
-    : conversationUsers;
+    : displayConversations;
 
   const filteredUsers = normalizedSearchQuery
     ? allUsers.filter((user) => user.name.toLowerCase().includes(normalizedSearchQuery))
@@ -198,9 +207,9 @@ function ChatSidebar() {
           <div className="p-3 border-b border-border shrink-0 space-y-3">
             <div className="flex items-center gap-2 mb-1">
               <div className="flex items-center justify-center size-6 rounded-full bg-accent/15">
-                <PhoneIcon className="size-3 text-accent" strokeWidth={2.5} />
+                <SearchIcon className="size-3 text-accent" strokeWidth={2.5} />
               </div>
-              <span className="text-xs font-semibold text-muted uppercase tracking-wider">Find by phone number</span>
+              <span className="text-xs font-semibold text-muted uppercase tracking-wider">Find by email or phone</span>
             </div>
             
             <form onSubmit={handleSearchContact} className="flex gap-2">
@@ -210,7 +219,7 @@ function ChatSidebar() {
                 </div>
                 <input
                   type="text"
-                  placeholder="+1234567890"
+                  placeholder="Email or phone number..."
                   value={phoneInput}
                   onChange={(e) => {
                     setPhoneInput(e.target.value);

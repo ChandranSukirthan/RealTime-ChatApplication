@@ -20,6 +20,12 @@ const messageSchema = new mongoose.Schema({
     video:{
         type: String
     },
+    audio:{
+        type: String
+    },
+    document:{
+        type: String
+    },
     isEdited: {
         type: Boolean,
         default: false

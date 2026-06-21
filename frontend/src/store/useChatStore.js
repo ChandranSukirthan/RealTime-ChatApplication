@@ -228,17 +228,21 @@ export const useChatStore = create(
 
       setSelectedUser: (selectedUser) => set({ selectedUser }),
 
-      setActiveConversationId: (activeConversationId) => {
-        set((state) => ({
-          activeConversationId,
-          selectedUser:
+      setActiveConversationId: (activeConversationId, userObj = null) => {
+        set((state) => {
+          const selectedUser = userObj ||
             state.users.find((user) => user._id === activeConversationId) ||
             state.conversations.find((user) => user._id === activeConversationId) ||
-            null,
-          messages: activeConversationId ? state.messages : [],
-          replyingToMessage: null,
-          editingMessage: null,
-        }));
+            (state.selectedUser?._id === activeConversationId ? state.selectedUser : null);
+
+          return {
+            activeConversationId,
+            selectedUser,
+            messages: activeConversationId ? state.messages : [],
+            replyingToMessage: null,
+            editingMessage: null,
+          };
+        });
       },
 
       setSearchQuery: (searchQuery) => set({ searchQuery }),

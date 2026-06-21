@@ -221,12 +221,17 @@ export async function addContact(req, res) {
         }
 
         const cleanPhone = emailOrPhone.replace(/[^\d+]/g, "");
+        const queryConditions = [
+            { email: emailOrPhone.toLowerCase() },
+            { phoneNumber: emailOrPhone }
+        ];
+        
+        if (cleanPhone && cleanPhone.length > 2) {
+            queryConditions.push({ phoneNumber: cleanPhone });
+        }
+
         const userToAdd = await User.findOne({
-            $or: [
-                { email: emailOrPhone.toLowerCase() },
-                { phoneNumber: emailOrPhone },
-                { phoneNumber: cleanPhone },
-            ],
+            $or: queryConditions,
         });
 
         if (!userToAdd) {
@@ -257,20 +262,25 @@ export async function searchContact(req, res) {
         const { phoneNumber } = req.body;
 
         if (!phoneNumber) {
-            return res.status(400).json({ message: "Phone number is required" });
+            return res.status(400).json({ message: "Email or phone number is required" });
         }
 
         const cleanPhone = phoneNumber.replace(/[^\d+]/g, "");
+        const queryConditions = [
+            { email: phoneNumber.toLowerCase() },
+            { phoneNumber: phoneNumber }
+        ];
+        
+        if (cleanPhone && cleanPhone.length > 2) {
+            queryConditions.push({ phoneNumber: cleanPhone });
+        }
+
         const userFound = await User.findOne({
-            $or: [
-                { phoneNumber: phoneNumber },
-                { phoneNumber: cleanPhone },
-                { email: phoneNumber.toLowerCase() },
-            ],
+            $or: queryConditions,
         }).select("-clerkId");
 
         if (!userFound) {
-            return res.status(404).json({ message: "No user found with this phone number" });
+            return res.status(404).json({ message: "No user found with this email or phone number" });
         }
         if (userFound._id.toString() === loggedInUserId.toString()) {
             return res.status(400).json({ message: "You cannot add yourself" });
