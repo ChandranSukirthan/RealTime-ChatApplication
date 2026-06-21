@@ -20,6 +20,25 @@ const messageSchema = new mongoose.Schema({
     video:{
         type: String
     },
+    audio:{
+        type: String
+    },
+    document:{
+        type: String
+    },
+    isEdited: {
+        type: Boolean,
+        default: false
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    replyTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Message",
+        default: null
+    },
  }, {timestamps:true});
 
 const Message = mongoose.model("Message",messageSchema);

@@ -24,14 +24,17 @@ function ChatPage() {
   }, [getConversations, getUsers]);
 
   useEffect(() => {
+    subscribeToMessages();
+    
+    // cleanup
+    return () => unsubscribeFromMessages();
+  }, [subscribeToMessages, unsubscribeFromMessages]);
+
+  useEffect(() => {
     if (!activeConversationId) return;
 
     getMessages(activeConversationId);
-    subscribeToMessages(activeConversationId);
-
-    // cleanup
-    return () => unsubscribeFromMessages();
-  }, [getMessages, activeConversationId, subscribeToMessages, unsubscribeFromMessages]);
+  }, [getMessages, activeConversationId]);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden p-2 sm:p-3 md:p-8" style={frameStyle}>
@@ -42,6 +45,7 @@ function ChatPage() {
           className={`flex-1 flex-col overflow-hidden ${
             !isLargeScreen && !activeConversationId ? "hidden lg:flex" : "flex"
           }`}
+          style={frameStyle}
         >
           <ChatHeader />
           <MessageList />

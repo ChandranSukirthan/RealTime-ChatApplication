@@ -39,10 +39,17 @@ router.post("/", async (req, res) => {
         )?.email_address ??
         u.email_addresses?.[0]?.email_address;
 
+      const phoneNumber = 
+        u.phone_numbers?.find(
+          (p) => p.id === u.primary_phone_number_id
+        )?.phone_number ??
+        u.phone_numbers?.[0]?.phone_number;
+
       const fullName =
         [u.first_name, u.last_name].filter(Boolean).join(" ") ||
         u.username ||
-        email?.split("@")[0];
+        email?.split("@")[0] ||
+        phoneNumber;
 
       console.log(`⏳ Saving user to MongoDB: Clerk ID = ${u.id}, Email = ${email}`);
       const savedUser = await User.findOneAndUpdate(
@@ -50,6 +57,7 @@ router.post("/", async (req, res) => {
         {
           clerkId: u.id,
           email,
+          phoneNumber,
           fullName,
           profilePic: u.image_url,
         },

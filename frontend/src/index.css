@@ -54,3 +54,31 @@
     transform: translateX(100%);
   }
 }
+
+@keyframes contact-card-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes search-pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.contact-card-enter {
+  animation: contact-card-slide-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.search-loading-pulse {
+  animation: search-pulse 1.2s ease-in-out infinite;
+}

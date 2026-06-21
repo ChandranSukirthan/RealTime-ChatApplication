@@ -1,60 +1,108 @@
-import { ChevronLeft, Phone, Video, Info } from "lucide-react";
-import { useSelectedConversation } from "../../hooks/useSelectedConversation";
+import { Avatar, Button } from "@heroui/react";
+import { ChevronLeftIcon, Volume2Icon, VolumeXIcon, XIcon } from "lucide-react";
+import { AppLogo } from "../AppLogo";
+import { AvatarWithOnlineIndicator } from "./AvatarWithOnlineIndicator";
+
+import { ThemePresetPicker } from "../ThemePresetPicker";
+
+import { ThemeToggle } from "../ThemeToggle";
+import { WallpaperPicker } from "../WallpaperPicker";
+
 import { useChatStore } from "../../store/useChatStore";
+import { useSelectedConversation } from "../../hooks/useSelectedConversation";
 
 export function ChatHeader() {
-  const { activeConversation } = useSelectedConversation();
+  const isSoundEnabled = useChatStore((state) => state.isSoundEnabled);
   const setActiveConversationId = useChatStore((state) => state.setActiveConversationId);
+  const setSoundEnabled = useChatStore((state) => state.setSoundEnabled);
 
-  if (!activeConversation) return null;
-
-  const { peer } = activeConversation;
+  const { activeConversation, isLargeScreen } = useSelectedConversation();
 
   return (
-    <header className="flex shrink-0 items-center justify-between border-b border-black/10 bg-[#F6F6F6]/95 px-4 py-3 backdrop-blur-md dark:border-white/10 dark:bg-[#1C1C1E]/95">
-      <div className="flex min-w-0 items-center gap-3">
-        {/* Mobile back button */}
-        <button
-          onClick={() => setActiveConversationId(null)}
-          className="flex size-8 items-center justify-center rounded-lg text-foreground hover:bg-black/5 dark:hover:bg-white/5 lg:hidden"
+    <header className="sticky top-0 z-10 flex shrink-0 flex-wrap items-center gap-1 border-b border-border px-1.5 py-1.5 sm:gap-2 sm:px-2 sm:py-2">
+      {activeConversation && !isLargeScreen ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          isIconOnly
+          className="shrink-0"
+          onPress={() => setActiveConversationId(null)}
         >
-          <ChevronLeft className="size-5" />
-        </button>
+          <ChevronLeftIcon className="size-6" strokeWidth={2.25} />
+        </Button>
+      ) : null}
 
-        {/* Profile Picture / Initials */}
-        <div className="relative shrink-0">
-          {peer.avatarUrl ? (
-            <img src={peer.avatarUrl} alt="" className="size-10 rounded-full object-cover" />
+      {activeConversation ? (
+        <>
+          <AvatarWithOnlineIndicator isOnline={activeConversation.peer.isOnline ?? true}>
+            <Avatar className="size-9 shrink-0">
+              <Avatar.Image
+                alt={activeConversation.peer.name}
+                src={activeConversation.peer.avatarUrl}
+              />
+              <Avatar.Fallback className="text-sm font-medium">
+                {activeConversation.peer.initials}
+              </Avatar.Fallback>
+            </Avatar>
+          </AvatarWithOnlineIndicator>
+
+          <div className="flex-1 text-center sm:text-left">
+            <p className="truncate text-[15px] font-semibold leading-tight">
+              {activeConversation.peer.name}
+            </p>
+            <p className="truncate text-xs text-muted">
+              {activeConversation.peer.isOnline ? (
+                <span className="font-medium text-success">Online</span>
+              ) : (
+                "Offline"
+              )}
+            </p>
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-1 items-center gap-2.5 sm:text-left">
+          <AppLogo size={36} className="rounded-[9px]" />
+          <div className="flex-1 text-center sm:text-left">
+            <p className="truncate text-[13px] font-medium text-muted">Select a conversation</p>
+          </div>
+        </div>
+      )}
+
+      <div className="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-0.5 sm:gap-1">
+        <div className="hidden min-[400px]:contents">
+          <WallpaperPicker />
+          <ThemePresetPicker />
+        </div>
+
+        <ThemeToggle />
+
+        <Button
+          variant="ghost"
+          size="sm"
+          isIconOnly
+          className="shrink-0"
+          aria-pressed={isSoundEnabled}
+          onPress={() => setSoundEnabled(!isSoundEnabled)}
+        >
+          {isSoundEnabled ? (
+            <Volume2Icon className="size-5.5" strokeWidth={2} aria-hidden />
           ) : (
-            <div className="flex size-10 items-center justify-center rounded-full bg-accent/15 text-accent text-sm font-semibold">
-              {peer.initials}
-            </div>
+            <VolumeXIcon className="size-5.5" strokeWidth={2} aria-hidden />
           )}
-          {peer.isOnline && (
-            <span className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-[#F6F6F6] bg-green-500 dark:border-[#1C1C1E]" />
-          )}
-        </div>
+        </Button>
 
-        {/* Partner Name & Status */}
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold leading-tight">{peer.name}</p>
-          <p className="truncate text-[10px] text-muted-foreground">
-            {peer.isOnline ? "Online" : "Offline"}
-          </p>
-        </div>
-      </div>
-
-      {/* Decorative controls */}
-      <div className="flex shrink-0 items-center gap-1">
-        <button className="flex size-8 items-center justify-center rounded-lg text-foreground/70 hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5">
-          <Phone className="size-4.5" />
-        </button>
-        <button className="flex size-8 items-center justify-center rounded-lg text-foreground/70 hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5">
-          <Video className="size-4.5" />
-        </button>
-        <button className="flex size-8 items-center justify-center rounded-lg text-foreground/70 hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5">
-          <Info className="size-4.5" />
-        </button>
+        {activeConversation ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            isIconOnly
+            className="shrink-0"
+            aria-label="Close chat"
+            onPress={() => setActiveConversationId(null)}
+          >
+            <XIcon className="size-5.5" strokeWidth={2} aria-hidden />
+          </Button>
+        ) : null}
       </div>
     </header>
   );

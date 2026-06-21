@@ -1,5 +1,5 @@
 import express from "express";
-import { getUsersForSidebar, getConversationsForSidebar, getMessages, sendMessage} from "../controllers/message.controller.js";
+import { getUsersForSidebar, getConversationsForSidebar, getMessages, sendMessage, editMessage, deleteMessage, addContact, searchContact, addSampleUser } from "../controllers/message.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import{ upload} from "../middleware/upload.middleware.js"
 
@@ -9,9 +9,12 @@ router.use(protectRoute)
 
 router.get("/users", getUsersForSidebar);
 router.get("/conversations", getConversationsForSidebar);
-router.get("/:id",getMessages);
-router.post("/send/:id",upload.single("media"),sendMessage);
-// todo: expllain this in the frontend 
+router.post("/search-contact", searchContact);
+router.post("/add-contact", addContact);
+router.post("/sample-user", addSampleUser);
+router.get("/:id", getMessages);
+router.post("/send/:id", upload.single("media"), sendMessage);
+router.put("/edit/:id", editMessage);
+router.delete("/delete/:id", deleteMessage);
 
-
-export default router;
+export default router;

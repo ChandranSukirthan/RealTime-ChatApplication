@@ -21,11 +21,28 @@ export function getInitials(name) {
 function mapUserToConversation({ user, messages, authUser, onlineUsers }) {
   const mappedMessages = messages.map((message) => ({
     id: message._id,
+    _id: message._id,
     role: String(message.senderId) === String(authUser?._id) ? "me" : "them",
     text: message.text || "",
     time: formatMessageTime(message.createdAt),
     imageUrl: message.image,
     videoUrl: message.video,
+    audioUrl: message.audio,
+    documentUrl: message.document,
+    isEdited: message.isEdited || false,
+    isDeleted: message.isDeleted || false,
+    replyTo: message.replyTo
+      ? {
+          _id: message.replyTo._id,
+          text: message.replyTo.text || "",
+          imageUrl: message.replyTo.image,
+          videoUrl: message.replyTo.video,
+          audioUrl: message.replyTo.audio,
+          documentUrl: message.replyTo.document,
+          isDeleted: message.replyTo.isDeleted || false,
+          isMe: String(message.replyTo.senderId) === String(authUser?._id),
+        }
+      : null,
   }));
 
   return {
