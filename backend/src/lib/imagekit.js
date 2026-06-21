@@ -12,11 +12,11 @@ function hasImageKitConfig() {
 //this healper makes a safe, unique filename for uploaded files.
 function createFileName(originalName="upload"){
     const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
-    return `chat-${DataTransfer.now()}-${safeName}`
+    return `chat-${Date.now()}-${safeName}`
 }
 
 async function uploadChatMedia(file) {
-    const fileName = createFileName(file.originalName);
+    const fileName = createFileName(file.originalname);
 
     const result = await imageKit.files.upload({
             file: await toFile(file.buffer, fileName, {type: file.mimetype}),

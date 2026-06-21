@@ -1,35 +1,97 @@
-/**
- * Wallpaper definitions — maps to files in /public/wallpaper/
- * Used by WallpaperContext and SettingsPanel.
- */
-export const WALLPAPERS = [
-    { id: "none",  label: "None",     url: null },
-    { id: "w0",    label: "Classic",  url: "/wallpaper/images.jpg" },
-    { id: "w1",    label: "Style 1",  url: "/wallpaper/images (1).jpg" },
-    { id: "w2",    label: "Style 2",  url: "/wallpaper/images (2).jpg" },
-    { id: "w3",    label: "Style 3",  url: "/wallpaper/images (3).jpg" },
-    { id: "w4",    label: "Style 4",  url: "/wallpaper/images (4).jpg" },
-    { id: "w5",    label: "Style 5",  url: "/wallpaper/images (5).jpg" },
-    { id: "w6",    label: "Style 6",  url: "/wallpaper/images (6).jpg" },
-    { id: "w7",    label: "Style 7",  url: "/wallpaper/images (7).jpg" },
-    { id: "w8",    label: "Style 8",  url: "/wallpaper/images (8).jpg" },
-    { id: "w9",    label: "Style 9",  url: "/wallpaper/images (9).jpg" },
-    { id: "w10",   label: "Style 10", url: "/wallpaper/images (10).jpg" },
+export const WALLPAPER_SECTIONS = [
+  { id: "desktop", title: "Desktop" },
+  { id: "abstract", title: "Abstract" },
 ];
 
-/** Returns the wallpaper object for the given id, falling back to "none". */
-export function getWallpaperById(id) {
-    return WALLPAPERS.find((w) => w.id === id) ?? WALLPAPERS[0];
+export const WALLPAPERS = [
+  {
+    id: "sonoma-horizon",
+    category: "desktop",
+    label: "Sonoma Horizon",
+    url: "/wallpapers/sonoma-horizon.jpg",
+  },
+  {
+    id: "redwoods",
+    category: "desktop",
+    label: "Redwoods",
+    url: "/wallpapers/redwoods.jpg",
+  },
+  {
+    id: "utah-evening",
+    category: "desktop",
+    label: "Utah Evening",
+    url: "/wallpapers/utah-evening.jpg",
+  },
+  {
+    id: "san-francisco-bay",
+    category: "desktop",
+    label: "San Francisco Bay",
+    url: "/wallpapers/san-francisco-bay.jpg",
+  },
+  {
+    id: "iceland-coast",
+    category: "desktop",
+    label: "Iceland Coast",
+    url: "/wallpapers/iceland-coast.jpg",
+  },
+  {
+    id: "new-york-midtown",
+    category: "desktop",
+    label: "New York Midtown",
+    url: "/wallpapers/new-york-midtown.jpg",
+  },
+  {
+    id: "macos-graphic",
+    category: "abstract",
+    label: "macOS Graphic",
+    url: "/wallpapers/macos-graphic.jpg",
+  },
+  {
+    id: "radial-yellow",
+    category: "abstract",
+    label: "Radial Yellow",
+    url: "/wallpapers/radial-yellow.jpg",
+  },
+  {
+    id: "radial-purple",
+    category: "abstract",
+    label: "Radial Purple",
+    url: "/wallpapers/radial-purple.jpg",
+  },
+  {
+    id: "radial-green",
+    category: "abstract",
+    label: "Radial Green",
+    url: "/wallpapers/radial-green.jpg",
+  },
+  {
+    id: "radial-blue",
+    category: "abstract",
+    label: "Radial Blue",
+    url: "/wallpapers/radial-blue.jpg",
+  },
+  {
+    id: "ventura-light",
+    category: "abstract",
+    label: "Ventura",
+    url: "/wallpapers/ventura-light.jpg",
+  },
+  {
+    id: "ventura-dark",
+    category: "abstract",
+    label: "Ventura Dark",
+    url: "/wallpapers/ventura-dark.jpg",
+  },
+];
+
+export function frameStyleFromUrl(url) {
+  return {
+    backgroundImage: `url("${url}")`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  };
 }
 
-/** Converts a wallpaper URL into a CSS background style object. */
-export function frameStyleFromUrl(url) {
-    if (!url) return {};
-    return {
-        backgroundImage: `url("${encodeURI(url)}")`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "local",
-        backgroundRepeat: "no-repeat",
-    };
+export function getWallpaperById(id) {
+  return WALLPAPERS.find((w) => w.id === id) ?? WALLPAPERS[0];
 }

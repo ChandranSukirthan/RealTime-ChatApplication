@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
-import Message from "../models/message.model.js"
+import Message from "../models/message.model.js";
 import { hasImageKitConfig, uploadChatMedia } from "../lib/imagekit.js";
+import { io, getReceiverSocketId } from "../lib/socket.js";
 export async function getUsersForSidebar(req,res) {
     try {
         const loggedInUserId = req.user._id
@@ -19,7 +20,7 @@ export async function getUsersForSidebar(req,res) {
 
 export async function getConversationsForSidebar(req,res) {
     try{
-        const loggedInUserId = require.user._id;
+        const loggedInUserId = req.user._id;
 
         const conversations = await Message.aggregate([
 
@@ -62,7 +63,9 @@ export async function getMessages(req,res) {
                {senderId: userToChatId, receiverId: myId},
             ]
         })
-        .sort({createdAt:1})
+        .sort({createdAt:1});
+
+        res.status(200).json(messages);
     }
     catch (error) {
       
@@ -86,7 +89,7 @@ export async function sendMessage(req,res) {
             }
 
             const url=await uploadChatMedia(req.file)
-            if(req.file.mimetype.startWith("video/")) videoUrl = url;
+            if(req.file.mimetype.startsWith("video/")) videoUrl = url;
             else imageUrl = url;
 
         }
@@ -94,12 +97,12 @@ export async function sendMessage(req,res) {
             senderId,
             receiverId,
             text,
-            Image:imageUrl,
+            image:imageUrl,
             video:videoUrl,
         })
         await newMessage.save()
 
-        const receiverSocketId = GetReceiverScketId(receiverId);
+        const receiverSocketId = getReceiverSocketId(receiverId);
         // only send the message in realtime if user is online
         if(receiverSocketId) {
             io.to(receiverSocketId).emit("newMessage",newMessage)

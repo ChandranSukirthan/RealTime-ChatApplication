@@ -1,64 +1,66 @@
-import { useLayoutEffect, useState } from "react";
-import { DEFAULT_THEME_PRESET_ID } from "../data/therouiThemePresets";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { DEFAULT_THEME_PRESET_ID } from "../data/herouiThemePresets";
 import { applyThemePresetToDocument, isValidThemePreset, ThemeContext } from "./theme";
 
 function getSystemTheme() {
-    if (typeof window === "undefined") return "light";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  if (typeof window === "undefined") return "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 function readStoredTheme() {
-    const theme = localStorage.getItem("theme");
-    if (theme === "light" || theme === "dark") return theme;
-    return null;
+  const theme = localStorage.getItem("theme");
+  if (theme === "light" || theme === "dark") return theme;
+
+  return null;
 }
 
 function applyDomTheme(theme) {
-    const root = document.documentElement;
-    root.classList.toggle("dark", theme === "dark");
-    root.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+  const root = document.documentElement;
+  root.classList.toggle("dark", theme === "dark");
+  root.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
 }
 
 function readStoredThemePreset() {
-    const themePreset = localStorage.getItem("theme-preset");
-    if (themePreset && isValidThemePreset(themePreset)) return themePreset;
-    return DEFAULT_THEME_PRESET_ID;
+  const themePreset = localStorage.getItem("theme-preset");
+  if (themePreset && isValidThemePreset(themePreset)) return themePreset;
+
+  return DEFAULT_THEME_PRESET_ID;
 }
 
 export function ThemeProvider({ children }) {
-    const [theme, setThemeState] = useState(() => readStoredTheme() ?? getSystemTheme());
-    // Fixed: was CONST + duplicate setThemeState name
-    const [themePreset, setThemePresetState] = useState(readStoredThemePreset);
+  const [theme, setThemeState] = useState(() => readStoredTheme() ?? getSystemTheme());
+  const [themePreset, setThemePresetState] = useState(readStoredThemePreset);
 
-    // Apply light/dark class to <html>
-    useLayoutEffect(() => {
-        applyDomTheme(theme);
-    }, [theme]);
+  // this applies light/dark mode
+  useLayoutEffect(() => {
+    applyDomTheme(theme);
+  }, [theme]);
 
-    // Apply preset and persist both settings
-    useLayoutEffect(() => {
-        applyThemePresetToDocument(themePreset);
-        localStorage.setItem("theme", theme);
-        localStorage.setItem("theme-preset", themePreset);
-    }, [theme, themePreset]);
+  // this applies the theme preset, like sky, spotify, etc.
+  useLayoutEffect(() => {
+    applyThemePresetToDocument(themePreset);
+  }, [themePreset]);
 
-    const setTheme = (next) => setThemeState(next);
+  // this stores the theme and theme preset in local storage
+  useEffect(() => {
+    localStorage.setItem("theme", theme);
+    localStorage.setItem("theme-preset", themePreset);
+  }, [theme, themePreset]);
 
-    const toggleTheme = () => {
-        setThemeState((t) => (t === "dark" ? "light" : "dark"));
-    };
+  const setTheme = (next) => setThemeState(next);
 
-    // Fixed: was calling readStoredThemePreset() instead of setThemePresetState()
-    const setThemePreset = (next) => {
-        setThemePresetState((prev) => {
-            const resolved = typeof next === "function" ? next(prev) : next;
-            return isValidThemePreset(resolved) ? resolved : DEFAULT_THEME_PRESET_ID;
-        });
-    };
+  const toggleTheme = () => {
+    setThemeState((t) => (t === "dark" ? "light" : "dark"));
+  };
 
-    return (
-        <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, themePreset, setThemePreset }}>
-            {children}
-        </ThemeContext.Provider>
-    );
+  const setThemePreset = (next) => {
+    setThemePresetState((prev) => {
+      const resolved = typeof next === "function" ? next(prev) : next;
+      return isValidThemePreset(resolved) ? resolved : DEFAULT_THEME_PRESET_ID;
+    });
+  };
+
+  const value = { theme, setTheme, toggleTheme, themePreset, setThemePreset };
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

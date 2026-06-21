@@ -1,23 +1,24 @@
 import { createContext, useContext } from "react";
-import { DEFAULT_THEME_PRESET_ID, HERO_UI_THEME_PRESETS } from "../data/therouiThemePresets";
+import { DEFAULT_THEME_PRESET_ID, HERO_UI_THEME_PRESETS } from "../data/herouiThemePresets";
 
 export const ThemeContext = createContext(null);
 
-/** Returns true if the given id matches a known theme preset */
+const PRESET_IDS = new Set(HERO_UI_THEME_PRESETS.map((p) => p.id));
+
 export function isValidThemePreset(presetId) {
-    return HERO_UI_THEME_PRESETS.some((p) => p.id === presetId);
+  return PRESET_IDS.has(presetId);
 }
 
-/** Apply preset id to <html data-theme-preset="…"> so CSS vars update before paint */
+/** apply preset to `<html>` immediately so `--accent` updates before paint. */
 export function applyThemePresetToDocument(presetId) {
-    const id = isValidThemePreset(presetId) ? presetId : DEFAULT_THEME_PRESET_ID;
-    document.documentElement.setAttribute("data-theme-preset", id);
+  const id = isValidThemePreset(presetId) ? presetId : DEFAULT_THEME_PRESET_ID;
+  document.documentElement.setAttribute("data-theme-preset", id);
 }
 
 export function useTheme() {
-    const ctx = useContext(ThemeContext);
-    if (!ctx) {
-        throw new Error("useTheme must be used within ThemeProvider");
-    }
-    return ctx;
+  const ctx = useContext(ThemeContext);
+  if (!ctx) {
+    throw new Error("useTheme must be used within ThemeProvider");
+  }
+  return ctx;
 }
