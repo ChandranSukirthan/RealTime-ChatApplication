@@ -33,17 +33,7 @@ export function AuthHeroPanel() {
           </p>
         </div>
 
-        <div className="flex flex-1 items-center justify-center py-6 md:py-4">
-          <img
-            src="/auth.png"
-            alt=""
-            width={640}
-            height={640}
-            className={heroImageClassName}
-            draggable={false}
-            decoding="async"
-          />
-        </div>
+
 
         <p className="text-center font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500 dark:text-[#636366] md:text-left">
           End-to-end session · Encrypted in transit
